@@ -52,7 +52,14 @@
 >
 > 1. Clone this repository
 > 2. Run `bun install` to install dependencies
-> 3. Add this to your `~/.bashrc` or `~/.zshrc`:
+> 3. Ensure you're on the `soumitra` branch (default branch):
+>
+>    ```bash
+>    git branch --show-current  # Check current branch
+>    git checkout soumitra      # Switch to soumitra if not already on it
+>    ```
+>
+> 4. Add this to your `~/.bashrc` or `~/.zshrc`:
 >
 >    ```bash
 >    # OpenCode Fork
@@ -60,9 +67,9 @@
 >    alias oc="$OPENCODE_BIN_PATH"
 >    ```
 >
-> 4. Source your shell config: `source ~/.bashrc` or `source ~/.zshrc`
-> 5. Build: `bun run build`
-> 6. Use anywhere: `oc`
+> 5. Source your shell config: `source ~/.bashrc` or `source ~/.zshrc`
+> 6. Build: `bun run build`
+> 7. Use anywhere: `oc`
 >
 > The build script automatically installs the binary to `$HOME/.config/opencode/bin/opencode`, so your `oc` alias will always work without updates.
 >
