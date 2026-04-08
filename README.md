@@ -43,6 +43,33 @@
 
 ---
 
+> **[!NOTE]**
+> This is a **personally maintained fork** of OpenCode that stays in complete sync with the original [anomalyco/opencode](https://github.com/anomalyco/opencode) project.
+>
+> **Why this fork exists:** Out of frustration with missing features and unresolved issues in the upstream project, I've created this fork to maintain and implement features that should have been resolved by now but haven't been.
+>
+> **How to use this fork:**
+>
+> 1. Clone this repository
+> 2. Run `bun install` to install dependencies
+> 3. Add this to your `~/.bashrc` or `~/.zshrc`:
+>
+>    ```bash
+>    # OpenCode Fork
+>    export OPENCODE_BIN_PATH="$HOME/.config/opencode/bin/opencode"
+>    alias oc="$OPENCODE_BIN_PATH"
+>    ```
+>
+> 4. Source your shell config: `source ~/.bashrc` or `source ~/.zshrc`
+> 5. Build: `bun run build`
+> 6. Use anywhere: `oc`
+>
+> The build script automatically installs the binary to `$HOME/.config/opencode/bin/opencode`, so your `oc` alias will always work without updates.
+>
+> **Sync status:** This fork is regularly rebased with the upstream `dev` branch to incorporate all latest changes while maintaining custom fixes and features.
+
+---
+
 ### Installation
 
 ```bash
