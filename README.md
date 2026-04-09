@@ -59,7 +59,17 @@
 >    git checkout soumitra      # Switch to soumitra if not already on it
 >    ```
 >
-> 4. Add this to your `~/.bashrc` or `~/.zshrc`:
+> 4. Build the binary:
+>
+>    ```bash
+>    bun run build
+>    ```
+>
+>    The build script auto-detects your platform (macOS/Linux/Windows) and architecture (arm64/x64), then installs the binary to:
+>    - **macOS/Linux:** `~/.config/opencode/bin/opencode`
+>    - **Windows:** `%APPDATA%/opencode/bin/opencode.exe`
+>
+> 5. Add this to your `~/.bashrc` or `~/.zshrc` (macOS/Linux) or PowerShell profile (Windows):
 >
 >    ```bash
 >    # OpenCode Fork
@@ -67,11 +77,10 @@
 >    alias oc="$OPENCODE_BIN_PATH"
 >    ```
 >
-> 5. Source your shell config: `source ~/.bashrc` or `source ~/.zshrc`
-> 6. Build: `bun run build`
+> 6. Source your shell config: `source ~/.bashrc` or `source ~/.zshrc`
 > 7. Use anywhere: `oc`
 >
-> The build script automatically installs the binary to `$HOME/.config/opencode/bin/opencode`, so your `oc` alias will always work without updates.
+> The `oc` alias runs your fork while the original `opencode` command (if installed) runs the production version. They coexist peacefully.
 >
 > **Sync status:** This fork is regularly rebased with the upstream `dev` branch to incorporate all latest changes while maintaining custom fixes and features.
 
