@@ -22,45 +22,17 @@ function getInstallDir() {
   return path.join(home, ".config", app, "bin")
 }
 
-async function getBinaryPath() {
-  const distDir = path.join(import.meta.dirname, "..", "packages", "opencode", "dist")
-  const entries = await fs.readdir(distDir).catch(() => [])
-  const platform = process.platform
-  const arch = process.arch
-
-  const targetName = entries.find((name) => {
-    if (!name.startsWith("opencode-")) return false
-    const parts = name.split("-")
-    const osPart = parts[1]
-    const archPart = parts[2]
-    if (osPart === "darwin" && platform !== "darwin") return false
-    if (osPart === "linux" && platform !== "linux") return false
-    if (osPart === "windows" && platform !== "win32") return false
-    if (archPart === "arm64" && arch !== "arm64") return false
-    if (archPart === "x64" && arch !== "x64") return false
-    if (name.includes("baseline")) return false
-    if (name.includes("musl")) return false
-    return true
-  })
-
-  if (!targetName) {
-    throw new Error(`No matching binary found for platform=${platform} arch=${arch}. Available: ${entries.join(", ")}`)
-  }
-
-  const binaryName = platform === "win32" ? "opencode.exe" : "opencode"
-  return {
-    distPath: path.join(distDir, targetName, "bin", binaryName),
-    installPath: path.join(getInstallDir(), binaryName),
-    targetName,
-  }
-}
-
 async function main() {
   console.log("Building opencode...")
   await $`bun run --cwd packages/opencode build --single`
 
   console.log("Detecting binary path...")
   const { distPath, installPath, targetName } = await getBinaryPath()
+
+  const binaryExists = await fs
+    .access(installPath)
+    .then(() => true)
+    .catch(() => false)
 
   console.log(`Found binary: ${targetName}`)
   console.log(`Installing to: ${installPath}`)
@@ -73,16 +45,20 @@ async function main() {
     await fs.chmod(installPath, 0o755)
   }
 
-  console.log(`\nOpenCode binary installed to: ${installPath}`)
-
-  if (process.platform !== "win32") {
-    console.log(`\nAdd this to your ~/.bashrc or ~/.zshrc:`)
-    console.log(`  export OPENCODE_BIN_PATH="$HOME/.config/opencode/bin/opencode"`)
-    console.log(`  alias oc="$OPENCODE_BIN_PATH"`)
-    console.log(`\nThen run: source ~/.bashrc  (or source ~/.zshrc)`)
+  if (binaryExists) {
+    console.log(`\nOpenCode binary updated: ${installPath}`)
   } else {
-    console.log(`\nAdd this directory to your PATH on Windows:`)
-    console.log(`  ${binDir}`)
+    console.log(`\nOpenCode binary installed to: ${installPath}`)
+
+    if (process.platform !== "win32") {
+      console.log(`\nAdd this to your ~/.bashrc or ~/.zshrc:`)
+      console.log(`  export OPENCODE_BIN_PATH="$HOME/.config/opencode/bin/opencode"`)
+      console.log(`  alias oc="$OPENCODE_BIN_PATH"`)
+      console.log(`\nThen run: source ~/.bashrc  (or source ~/.zshrc)`)
+    } else {
+      console.log(`\nAdd this directory to your PATH on Windows:`)
+      console.log(`  ${binDir}`)
+    }
   }
 }
 
