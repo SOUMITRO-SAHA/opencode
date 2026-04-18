@@ -255,6 +255,10 @@ export const { use: useLayout, provider: LayoutProvider } = createSimpleContext(
         mobileSidebar: {
           opened: false,
         },
+        gitPanel: {
+          opened: false,
+          width: 400,
+        },
         sessionTabs: {} as Record<string, SessionTabs>,
         sessionView: {} as Record<string, SessionView>,
         handoff: {
@@ -700,6 +704,38 @@ export const { use: useLayout, provider: LayoutProvider } = createSimpleContext(
         },
         toggle() {
           setStore("mobileSidebar", "opened", (x) => !x)
+        },
+      },
+      gitPanel: {
+        opened: createMemo(() => store.gitPanel?.opened ?? false),
+        width: createMemo(() => store.gitPanel?.width ?? 400),
+        open() {
+          if (!store.gitPanel) {
+            setStore("gitPanel", { opened: true, width: 400 })
+            return
+          }
+          setStore("gitPanel", "opened", true)
+        },
+        close() {
+          if (!store.gitPanel) {
+            setStore("gitPanel", { opened: false, width: 400 })
+            return
+          }
+          setStore("gitPanel", "opened", false)
+        },
+        toggle() {
+          if (!store.gitPanel) {
+            setStore("gitPanel", { opened: true, width: 400 })
+            return
+          }
+          setStore("gitPanel", "opened", (x) => !x)
+        },
+        resize(width: number) {
+          if (!store.gitPanel) {
+            setStore("gitPanel", { opened: true, width })
+            return
+          }
+          setStore("gitPanel", "width", width)
         },
       },
       pendingMessage: {

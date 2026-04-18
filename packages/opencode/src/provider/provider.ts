@@ -383,11 +383,12 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
               }
               break
             }
+          }
 
-            return sdk.languageModel(modelID)
-          },
-        }
-      }),
+          return sdk.languageModel(modelID)
+        },
+      }
+    }),
     llmgateway: () =>
       Effect.succeed({
         autoload: false,

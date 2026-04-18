@@ -47,6 +47,9 @@ export interface Settings {
   }
   notifications: NotificationSettings
   sounds: SoundSettings
+  git: {
+    commitModel: { providerID: string; modelID: string } | undefined
+  }
 }
 
 export const monoDefault = "System Mono"
@@ -129,6 +132,9 @@ const defaultSettings: Settings = {
     permissions: "staplebops-02",
     errorsEnabled: true,
     errors: "nope-03",
+  },
+  git: {
+    commitModel: undefined,
   },
 }
 
@@ -307,6 +313,12 @@ export const { use: useSettings, provider: SettingsProvider } = createSimpleCont
         errors: withFallback(() => store.sounds?.errors, defaultSettings.sounds.errors),
         setErrors(value: string) {
           setStore("sounds", "errors", value)
+        },
+      },
+      git: {
+        commitModel: withFallback(() => store.git?.commitModel, defaultSettings.git.commitModel),
+        setCommitModel(value: { providerID: string; modelID: string } | undefined) {
+          setStore("git", "commitModel", value)
         },
       },
     }
