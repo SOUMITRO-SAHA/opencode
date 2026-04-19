@@ -22,6 +22,17 @@ function getInstallDir() {
   return path.join(home, ".config", app, "bin")
 }
 
+async function getBinaryPath() {
+  const platform = process.platform === "win32" ? "windows" : process.platform
+  const arch = process.arch
+  const targetName = `${app}-${platform}-${arch}`
+
+  const distPath = path.join(process.cwd(), "packages", "opencode", "dist", targetName, "bin", app)
+  const installPath = path.join(getInstallDir(), app)
+
+  return { distPath, installPath, targetName }
+}
+
 async function main() {
   console.log("Building opencode...")
   await $`bun run --cwd packages/opencode build --single`
