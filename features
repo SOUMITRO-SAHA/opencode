@@ -1,0 +1,39 @@
+# Features
+
+## New Features
+
+- **Thinking UI** (`packages/ui/src/components/session-turn.tsx`)
+  - Collapsible thinking container with `/thinking` command toggle
+  - Display thinking/transparency alongside model responses
+  - i18n support for thinking display translations
+
+- **Model Favorites** (`packages/app/src/components/dialog-manage-models.tsx`)
+  - Star/favorite models with visual indicators
+  - Sort by favorites in model selection dialog
+  - Favorites persisted in local storage
+
+- **Google Cloud Authentication**
+  - Configured Google Cloud auth for GCP-based providers
+  - Required OAuth scope added
+
+## Build & Developer Experience
+
+- **Cross-platform Build Script** (`script/build.ts`)
+  - Bypasses Vite cache to prevent stale builds
+  - Platform-aware build process
+  - Used to regenerate JS SDK
+
+- **`getBinaryPath` Helper** (`packages/opencode/src/`)
+  - Provides binary path resolution utility
+
+## Bug Fixes
+
+- **Kimi/Moonshot Provider**: Exposed actual API errors and resolved `$ref` schema conflicts
+- **Context Provider**: Fixed context provider issue in `DialogManageModels`
+- **Thinking UI**: Always render reasoning parts when text is present
+- **Provider Transform**: Fixed provider transformation logic (`packages/opencode/src/provider/transform.ts`)
+
+## i18n Updates
+
+- Thinking display translations across all supported locales
+- New locale additions and updates to existing translations
