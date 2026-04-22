@@ -12,6 +12,10 @@
   - Sort by favorites in model selection dialog
   - Favorites persisted in local storage
 
+- **Auto Project Path on Web Open** (`packages/opencode/src/cli/cmd/web.ts`)
+  - When running `opencode web [directory]`, auto-adds the directory to the project registry
+  - Opens the browser directly to the project's session view — no manual path input needed
+
 - **Google Cloud Authentication**
   - Configured Google Cloud auth for GCP-based providers
   - Required OAuth scope added
