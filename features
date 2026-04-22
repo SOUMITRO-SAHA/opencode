@@ -2,6 +2,14 @@
 
 ## New Features
 
+- **Scroll Navigation Buttons (TUI)**
+  - Vertical navigation buttons on the right side of the session view
+  - **Up arrow (▲)**: Jump to previous user message progressively (1st click → prev user, 2nd click → prev prev, etc.)
+  - **Down arrow (▼)**: Scroll to bottom (appears only when scrolled up)
+  - Buttons are vertically centered, positioned at `top: 50%`
+  - Subtle primary-tinted background with proper spacing
+  - Implemented in `packages/opencode/src/cli/cmd/tui/component/scroll-to-bottom.tsx`
+
 - **Thinking UI** (`packages/ui/src/components/session-turn.tsx`)
   - Collapsible thinking container with `/thinking` command toggle
   - Display thinking/transparency alongside model responses
