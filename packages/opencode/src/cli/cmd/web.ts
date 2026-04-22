@@ -5,6 +5,15 @@ import { withNetworkOptions, resolveNetworkOptions } from "../network"
 import { Flag } from "../../flag/flag"
 import open from "open"
 import { networkInterfaces } from "os"
+import { isAbsolute, normalize, resolve } from "node:path"
+import { AppRuntime } from "@/effect/app-runtime"
+import { Project } from "@/project"
+
+function base64Encode(value: string) {
+  const bytes = new TextEncoder().encode(value)
+  const binary = Array.from(bytes, (b) => String.fromCharCode(b)).join("")
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "")
+}
 
 function getNetworkIPs() {
   const nets = networkInterfaces()
@@ -28,19 +37,34 @@ function getNetworkIPs() {
   return results
 }
 
+function resolveDirectory(input?: string) {
+  if (!input) return process.cwd()
+  if (isAbsolute(input)) return normalize(input)
+  return resolve(process.cwd(), input)
+}
+
 export const WebCommand = cmd({
-  command: "web",
-  builder: (yargs) => withNetworkOptions(yargs),
+  command: "web [directory]",
+  builder: (yargs) =>
+    withNetworkOptions(yargs).positional("directory", {
+      describe: "project directory (default: current working directory)",
+      type: "string",
+    }),
   describe: "start opencode server and open web interface",
   handler: async (args) => {
     if (!Flag.OPENCODE_SERVER_PASSWORD) {
       UI.println(UI.Style.TEXT_WARNING_BOLD + "!  OPENCODE_SERVER_PASSWORD is not set; server is unsecured.")
     }
     const opts = await resolveNetworkOptions(args)
+    const directory = resolveDirectory(args.directory as string | undefined)
+    await AppRuntime.runPromise(Project.Service.use((svc) => svc.fromDirectory(directory)))
     const server = await Server.listen(opts)
     UI.empty()
     UI.println(UI.logo("  "))
     UI.empty()
+
+    const projectSlug = base64Encode(directory)
+    const projectPath = `/${projectSlug}/session`
 
     if (opts.hostname === "0.0.0.0") {
       // Show localhost for local access
@@ -67,12 +91,12 @@ export const WebCommand = cmd({
         )
       }
 
-      // Open localhost in browser
-      open(localhostUrl.toString()).catch(() => {})
+      // Open project directly in browser
+      open(`${localhostUrl}${projectPath}`).catch(() => {})
     } else {
       const displayUrl = server.url.toString()
       UI.println(UI.Style.TEXT_INFO_BOLD + "  Web interface:    ", UI.Style.TEXT_NORMAL, displayUrl)
-      open(displayUrl).catch(() => {})
+      open(`${displayUrl.replace(/\/$/, "")}${projectPath}`).catch(() => {})
     }
 
     await new Promise(() => {})
