@@ -24,6 +24,10 @@ export const TuiOptions = z.object({
     .optional()
     .describe("Control diff rendering style: 'auto' adapts to terminal width, 'stacked' always shows single column"),
   mouse: z.boolean().optional().describe("Enable or disable mouse capture (default: true)"),
+  bell_on_agent_finish: z
+    .boolean()
+    .optional()
+    .describe("Ring the terminal bell when the agent finishes working"),
 })
 
 export const TuiInfo = z
