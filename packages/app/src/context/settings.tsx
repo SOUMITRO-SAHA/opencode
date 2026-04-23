@@ -32,6 +32,7 @@ export interface Settings {
     reasoningToolDefaultOpen: boolean
     shellToolPartsExpanded: boolean
     editToolPartsExpanded: boolean
+    showSessionProgressBar: boolean
   }
   updates: {
     startup: boolean
@@ -120,6 +121,7 @@ const defaultSettings: Settings = {
     reasoningToolDefaultOpen: true,
     shellToolPartsExpanded: false,
     editToolPartsExpanded: false,
+    showSessionProgressBar: true,
   },
   updates: {
     startup: true,
@@ -241,6 +243,13 @@ export const { use: useSettings, provider: SettingsProvider } = createSimpleCont
         ),
         setEditToolPartsExpanded(value: boolean) {
           setStore("general", "editToolPartsExpanded", value)
+        },
+        showSessionProgressBar: withFallback(
+          () => store.general?.showSessionProgressBar,
+          defaultSettings.general.showSessionProgressBar,
+        ),
+        setShowSessionProgressBar(value: boolean) {
+          setStore("general", "showSessionProgressBar", value)
         },
       },
       updates: {
