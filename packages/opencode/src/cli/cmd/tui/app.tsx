@@ -769,6 +769,11 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
     }
   })
 
+  event.on("session.idle", (evt) => {
+    if (!tuiConfig.bell_on_agent_finish) return
+    process.stderr.write("\u0007")
+  })
+
   event.on("session.error", (evt) => {
     const error = evt.properties.error
     if (error && typeof error === "object" && error.name === "MessageAbortedError") return
