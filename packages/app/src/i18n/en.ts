@@ -234,7 +234,7 @@ export const dict = {
   "common.default": "Default",
   "common.attachment": "attachment",
 
-  "prompt.placeholder.shell": "Enter shell command...",
+  "prompt.placeholder.shell": "Enter shell command... {{example}}",
   "prompt.placeholder.normal": 'Ask anything... "{{example}}"',
   "prompt.placeholder.simple": "Ask anything...",
   "prompt.placeholder.summarizeComments": "Summarize comments…",
