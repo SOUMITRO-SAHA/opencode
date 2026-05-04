@@ -343,6 +343,10 @@ export type SessionStatus =
   | {
       type: "busy"
     }
+  | {
+      type: "image_processing"
+      model: string
+    }
 
 export type EventSessionStatus = {
   type: "session.status"
@@ -1541,6 +1545,10 @@ export type Config = {
    * Small model to use for tasks like title generation in the format of provider/model
    */
   small_model?: string
+  /**
+   * Default model to use for analyzing images in the format of provider/model
+   */
+  image_model?: string
   /**
    * Default agent to use when none is specified. Must be a primary agent. Falls back to 'build' if not set or if the specified agent is invalid.
    */
@@ -3795,6 +3803,10 @@ export type SessionPromptData = {
       providerID: string
       modelID: string
     }
+    imageModel?: {
+      providerID: string
+      modelID: string
+    }
     agent?: string
     noReply?: boolean
     /**
@@ -3992,6 +4004,10 @@ export type SessionPromptAsyncData = {
   body?: {
     messageID?: string
     model?: {
+      providerID: string
+      modelID: string
+    }
+    imageModel?: {
       providerID: string
       modelID: string
     }
