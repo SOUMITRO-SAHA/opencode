@@ -146,7 +146,6 @@ export const layer = Layer.effect(
     const compaction = yield* SessionCompaction.Service
     const plugin = yield* Plugin.Service
     const commands = yield* Command.Service
-    const config = yield* Config.Service
     const permission = yield* Permission.Service
     const fsys = yield* AppFileSystem.Service
     const mcp = yield* MCP.Service

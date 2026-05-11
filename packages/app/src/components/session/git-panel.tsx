@@ -13,7 +13,7 @@ import { useGlobalSDK } from "@/context/global-sdk"
 import { useLocal } from "@/context/local"
 import { useSettings } from "@/context/settings"
 import type { VcsFileDiff } from "@opencode-ai/sdk/v2"
-import { getFilename } from "@opencode-ai/shared/util/path"
+import { getFilename } from "@opencode-ai/core/util/path"
 
 type CommitMode = "tracked" | "all"
 

@@ -8,7 +8,6 @@ import open from "open"
 import { networkInterfaces } from "os"
 import { isAbsolute, normalize, resolve } from "node:path"
 import { AppRuntime } from "@/effect/app-runtime"
-import { Project } from "@/project"
 
 function base64Encode(value: string) {
   const bytes = new TextEncoder().encode(value)
