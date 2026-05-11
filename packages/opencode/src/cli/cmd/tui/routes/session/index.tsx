@@ -428,12 +428,12 @@ export function Session() {
 
     const children = scroll.getChildren()
     const childById = new Map(children.map((c) => [c.id, c]))
-    const currentScrollTop = scroll.scrollTop
+    const viewportTop = scroll.y
 
     const indicesAbove: number[] = []
     for (let i = 0; i < msgs.length; i++) {
       const child = childById.get(msgs[i]!.id)
-      if (child && child.y < currentScrollTop) {
+      if (child && child.y < viewportTop) {
         indicesAbove.push(i)
       }
     }
@@ -444,14 +444,12 @@ export function Session() {
     let targetIndex: number
 
     if (currentIndex === -1) {
-      targetIndex = Math.max(0, indicesAbove[indicesAbove.length - 1]! - 1)
+      targetIndex = indicesAbove[indicesAbove.length - 1]!
     } else {
       const currentMsg = msgs[currentIndex]
       const currentChild = currentMsg ? childById.get(currentMsg.id) : undefined
-      // If the tracked message is no longer above the viewport (user scrolled down past it),
-      // recalculate from current scroll position instead of blindly decrementing
-      if (!currentChild || currentChild.y >= currentScrollTop) {
-        targetIndex = Math.max(0, indicesAbove[indicesAbove.length - 1]! - 1)
+      if (!currentChild || currentChild.y >= viewportTop) {
+        targetIndex = indicesAbove[indicesAbove.length - 1]!
       } else {
         targetIndex = Math.max(0, currentIndex - 1)
       }
