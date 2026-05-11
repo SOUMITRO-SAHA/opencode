@@ -1,8 +1,9 @@
+import { Effect } from "effect"
 import { Server } from "../../server/server"
 import { UI } from "../ui"
-import { cmd } from "./cmd"
+import { effectCmd } from "../effect-cmd"
 import { withNetworkOptions, resolveNetworkOptions } from "../network"
-import { Flag } from "../../flag/flag"
+import { Flag } from "@opencode-ai/core/flag/flag"
 import open from "open"
 import { networkInterfaces } from "os"
 import { isAbsolute, normalize, resolve } from "node:path"
@@ -43,7 +44,7 @@ function resolveDirectory(input?: string) {
   return resolve(process.cwd(), input)
 }
 
-export const WebCommand = cmd({
+export const WebCommand = effectCmd({
   command: "web [directory]",
   builder: (yargs) =>
     withNetworkOptions(yargs).positional("directory", {
@@ -51,14 +52,16 @@ export const WebCommand = cmd({
       type: "string",
     }),
   describe: "start opencode server and open web interface",
-  handler: async (args) => {
+  // Server loads instances per-request via x-opencode-directory header — no
+  // ambient project InstanceContext needed at startup.
+  instance: false,
+  handler: Effect.fn("Cli.web")(function* (args) {
     if (!Flag.OPENCODE_SERVER_PASSWORD) {
       UI.println(UI.Style.TEXT_WARNING_BOLD + "!  OPENCODE_SERVER_PASSWORD is not set; server is unsecured.")
     }
-    const opts = await resolveNetworkOptions(args)
+    const opts = yield* resolveNetworkOptions(args)
     const directory = resolveDirectory(args.directory as string | undefined)
-    await AppRuntime.runPromise(Project.Service.use((svc) => svc.fromDirectory(directory)))
-    const server = await Server.listen(opts)
+    const server = yield* Effect.promise(() => Server.listen(opts))
     UI.empty()
     UI.println(UI.logo("  "))
     UI.empty()
@@ -91,7 +94,6 @@ export const WebCommand = cmd({
         )
       }
 
-      // Open project directly in browser
       open(`${localhostUrl}${projectPath}`).catch(() => {})
     } else {
       const displayUrl = server.url.toString()
@@ -99,7 +101,6 @@ export const WebCommand = cmd({
       open(`${displayUrl.replace(/\/$/, "")}${projectPath}`).catch(() => {})
     }
 
-    await new Promise(() => {})
-    await server.stop()
-  },
+    yield* Effect.never
+  }),
 })

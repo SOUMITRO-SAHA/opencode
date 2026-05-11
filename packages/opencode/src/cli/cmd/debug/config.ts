@@ -1,19 +1,20 @@
 import { EOL } from "os"
-import { Config, type Config as ConfigNamespace } from "../../../config"
+import { Config, type Config as ConfigNamespace } from "@/config/config"
 import { AppRuntime } from "@/effect/app-runtime"
 import { bootstrap } from "../../bootstrap"
 import { cmd } from "../cmd"
 import { UI } from "../../ui"
 import { Effect } from "effect"
+import { effectCmd } from "../../effect-cmd"
 
 const MODEL_ID_REGEX = /^[\w-]+\/[\w-]+$/
 
-export const ConfigCommand = cmd({
+export const ConfigCommand = effectCmd({
   command: "config",
   describe: "show resolved configuration",
   builder: (yargs) =>
     yargs.command(ConfigSetCommand).command(ConfigShowCommand).demandCommand(),
-  async handler() {},
+  handler: () => Effect.void,
 })
 
 export const ConfigSetCommand = cmd({
@@ -47,14 +48,12 @@ export const ConfigSetCommand = cmd({
   },
 })
 
-export const ConfigShowCommand = cmd({
+export const ConfigShowCommand = effectCmd({
   command: "show",
   describe: "show resolved configuration",
   builder: (yargs) => yargs,
-  async handler() {
-    await bootstrap(process.cwd(), async () => {
-      const config = await AppRuntime.runPromise(Config.Service.use((cfg) => cfg.get()))
-      process.stdout.write(JSON.stringify(config, null, 2) + EOL)
-    })
-  },
+  handler: Effect.fn("Cli.debug.config")(function* () {
+    const config = yield* Config.Service.use((cfg) => cfg.get())
+    process.stdout.write(JSON.stringify(config, null, 2) + EOL)
+  }),
 })
