@@ -22,6 +22,7 @@ export type Retryable = {
 }
 
 export const RETRY_INITIAL_DELAY = 2000
+export const RETRY_RPM_DELAY = 60_000 // 60 seconds for requests-per-minute rate limits
 export const RETRY_BACKOFF_FACTOR = 2
 export const RETRY_MAX_DELAY_NO_HEADERS = 30_000 // 30 seconds
 export const RETRY_MAX_DELAY = 2_147_483_647 // max 32-bit signed integer for setTimeout
@@ -30,7 +31,18 @@ function cap(ms: number) {
   return Math.min(ms, RETRY_MAX_DELAY)
 }
 
+function isRpmLimit(error?: MessageV2.APIError) {
+  if (!error) return false
+  const msg = error.data.message?.toLowerCase() ?? ""
+  const body = error.data.responseBody?.toLowerCase() ?? ""
+  return msg.includes("limit_rpm") || body.includes("limit_rpm")
+}
+
 export function delay(attempt: number, error?: MessageV2.APIError) {
+  const rpm = isRpmLimit(error)
+  const initialDelay = rpm ? RETRY_RPM_DELAY : RETRY_INITIAL_DELAY
+  const maxDelay = rpm ? RETRY_RPM_DELAY : RETRY_MAX_DELAY_NO_HEADERS
+
   if (error) {
     const headers = error.data.responseHeaders
     if (headers) {
@@ -56,11 +68,11 @@ export function delay(attempt: number, error?: MessageV2.APIError) {
         }
       }
 
-      return cap(RETRY_INITIAL_DELAY * Math.pow(RETRY_BACKOFF_FACTOR, attempt - 1))
+      return cap(initialDelay * Math.pow(RETRY_BACKOFF_FACTOR, attempt - 1))
     }
   }
 
-  return cap(Math.min(RETRY_INITIAL_DELAY * Math.pow(RETRY_BACKOFF_FACTOR, attempt - 1), RETRY_MAX_DELAY_NO_HEADERS))
+  return cap(Math.min(initialDelay * Math.pow(RETRY_BACKOFF_FACTOR, attempt - 1), maxDelay))
 }
 
 export function retryable(error: Err, provider: string) {
