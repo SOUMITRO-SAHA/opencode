@@ -84,6 +84,46 @@ describe("session.retry.delay", () => {
     expect(SessionRetry.delay(1, error)).toBe(SessionRetry.RETRY_MAX_DELAY)
   })
 
+  test("uses RPM delay for limit_rpm rate limit errors in message", () => {
+    const error = MessageV2.APIError.Schema.parse(
+      new MessageV2.APIError({
+        message: "Rate limit exceeded: limit_rpm/inclusionai/ring-2.6-1t",
+        isRetryable: true,
+      }).toObject(),
+    )
+    const delays = Array.from({ length: 5 }, (_, index) => SessionRetry.delay(index + 1, error))
+    expect(delays).toStrictEqual([60000, 60000, 60000, 60000, 60000])
+  })
+
+  test("uses RPM delay for limit_rpm rate limit errors in response body", () => {
+    const error = MessageV2.APIError.Schema.parse(
+      new MessageV2.APIError({
+        message: "Too Many Requests",
+        isRetryable: true,
+        responseBody: JSON.stringify({ error: { type: "limit_rpm", message: "Rate limit exceeded" } }),
+      }).toObject(),
+    )
+    expect(SessionRetry.delay(1, error)).toBe(60000)
+    expect(SessionRetry.delay(2, error)).toBe(60000)
+  })
+
+  test("prefers retry-after header over RPM delay when present", () => {
+    const error = MessageV2.APIError.Schema.parse(
+      new MessageV2.APIError({
+        message: "Rate limit exceeded: limit_rpm/inclusionai/ring-2.6-1t",
+        isRetryable: true,
+        responseHeaders: { "retry-after": "30" },
+      }).toObject(),
+    )
+    expect(SessionRetry.delay(1, error)).toBe(30000)
+  })
+
+  test("does not apply RPM delay for non-RPM rate limit errors", () => {
+    const error = apiError()
+    expect(SessionRetry.delay(1, error)).toBe(2000)
+    expect(SessionRetry.delay(3, error)).toBe(8000)
+  })
+
   it.live("policy updates retry status and increments attempts", () =>
     provideTmpdirInstance(() =>
       Effect.gen(function* () {
