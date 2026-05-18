@@ -1372,7 +1372,6 @@ export function MessageTimeline(props: {
                   </Show>
                 </div>
               </div>
-            </Show>
             <Show when={sessionID()} keyed>
               {(id) => (
                 <div class="shrink-0 flex items-center gap-3">
@@ -1387,9 +1386,7 @@ export function MessageTimeline(props: {
                         if (open) return
                       }}
                     >
-                        }}
-                      >
-                        <DropdownMenu.Trigger
+                      <DropdownMenu.Trigger
                           as={IconButton}
                           icon="dot-grid"
                           variant="ghost"

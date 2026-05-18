@@ -25,7 +25,6 @@ import { RuntimeFlags } from "@/effect/runtime-flags"
 import * as Option from "effect/Option"
 import * as OtelTracer from "@effect/opentelemetry/Tracer"
 import { sniffAttachmentMime } from "@/util/media"
-import { zod } from "@opencode-ai/core/effect-zod"
 import { withStatics, type DeepMutable } from "@opencode-ai/core/schema"
 
 export const Info = Schema.Struct({

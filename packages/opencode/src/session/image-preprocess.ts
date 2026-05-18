@@ -116,7 +116,7 @@ export const preprocessImages = Effect.fn("ImagePreprocess.preprocessImages")(
       },
     ]
 
-    const language = yield* provider.getLanguage(resolvedImageModel)
+    const language = yield* provider.getLanguage(resolvedImageModel).pipe(Effect.orDie)
 
     const modelLabel = resolvedImageModel.name ?? `${resolvedImageModel.providerID}/${resolvedImageModel.id}`
 
