@@ -1819,7 +1819,10 @@ export const layer = Layer.effect(
          return { providerID: entry.providerID, modelID: entry.modelID }
        }
 
-       const provider = Object.values(s.providers).find((p) => !cfg.provider || Object.keys(cfg.provider).includes(p.id))
+        const cfgProviderKeys = Object.keys(cfg.provider ?? {})
+        const provider = Object.values(s.providers).find(
+          (p) => cfgProviderKeys.length === 0 || cfgProviderKeys.includes(p.id),
+        )
        if (!provider) throw new Error("no providers found")
        const [model] = sort(Object.values(provider.models))
        if (!model) throw new Error("no models found")

@@ -145,9 +145,9 @@ export const layer: Layer.Layer<
         function fromPlugin(id: string, def: ToolDefinition): Tool.Def {
           // Plugin tools still expose Zod args publicly; keep that compatibility
           // boxed at the registry boundary and give the LLM the original JSON Schema.
-          const entries = Object.entries(def.args)
+          const entries = Object.entries(def.args ?? {})
           const allZod = entries.every((entry) => isZodType(entry[1]))
-          const zodParams = allZod ? z.object(def.args) : undefined
+          const zodParams = allZod && def.args ? z.object(def.args) : undefined
           const jsonSchema = zodParams ? zodJsonSchema(zodParams) : legacyJsonSchema(entries)
           const parameters = zodParams
             ? Schema.declare<unknown>((u): u is unknown => zodParams.safeParse(u).success)
@@ -216,6 +216,7 @@ export const layer: Layer.Layer<
         const plugins = yield* plugin.list()
         for (const p of plugins) {
           for (const [id, def] of Object.entries(p.tool ?? {})) {
+            if (!isPluginTool(def)) continue
             custom.push(fromPlugin(id, def))
           }
         }

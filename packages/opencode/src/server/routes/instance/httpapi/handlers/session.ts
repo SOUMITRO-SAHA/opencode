@@ -286,7 +286,9 @@ export const sessionHandlers = HttpApiBuilder.group(InstanceHttpApi, "session", 
           ...ctx.payload,
           sessionID: ctx.params.sessionID,
         })
-        .pipe(Effect.mapError(() => new HttpApiError.BadRequest({})))
+        .pipe(
+          Effect.catchCause(() => Effect.fail(new HttpApiError.BadRequest({}))),
+        )
       return HttpServerResponse.stream(Stream.make(JSON.stringify(message)).pipe(Stream.encodeText), {
         contentType: "application/json",
       })
@@ -300,8 +302,8 @@ export const sessionHandlers = HttpApiBuilder.group(InstanceHttpApi, "session", 
       yield* promptSvc.prompt({ ...ctx.payload, sessionID: ctx.params.sessionID }).pipe(
         Effect.catchCause((cause) =>
           Effect.gen(function* () {
-            yield* Effect.logError("prompt_async failed").pipe(
-              Effect.annotateLogs({ sessionID: ctx.params.sessionID, cause }),
+            yield* Effect.logError("prompt_async failed", Cause.pretty(cause)).pipe(
+              Effect.annotateLogs({ sessionID: ctx.params.sessionID }),
             )
             yield* bus.publish(Session.Event.Error, {
               sessionID: ctx.params.sessionID,
