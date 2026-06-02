@@ -85,7 +85,7 @@ describe("session.retry.delay", () => {
   })
 
   test("uses RPM delay for limit_rpm rate limit errors in message", () => {
-    const error = MessageV2.APIError.Schema.parse(
+    const error = Schema.decodeUnknownSync(MessageV2.APIError.Schema)(
       new MessageV2.APIError({
         message: "Rate limit exceeded: limit_rpm/inclusionai/ring-2.6-1t",
         isRetryable: true,
@@ -96,7 +96,7 @@ describe("session.retry.delay", () => {
   })
 
   test("uses RPM delay for limit_rpm rate limit errors in response body", () => {
-    const error = MessageV2.APIError.Schema.parse(
+    const error = Schema.decodeUnknownSync(MessageV2.APIError.Schema)(
       new MessageV2.APIError({
         message: "Too Many Requests",
         isRetryable: true,
@@ -108,7 +108,7 @@ describe("session.retry.delay", () => {
   })
 
   test("prefers retry-after header over RPM delay when present", () => {
-    const error = MessageV2.APIError.Schema.parse(
+    const error = Schema.decodeUnknownSync(MessageV2.APIError.Schema)(
       new MessageV2.APIError({
         message: "Rate limit exceeded: limit_rpm/inclusionai/ring-2.6-1t",
         isRetryable: true,
