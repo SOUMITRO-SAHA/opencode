@@ -9,6 +9,8 @@ import { configEntryNameFromPath } from "./entry-name"
 import * as ConfigMarkdown from "./markdown"
 import { ConfigParse } from "./parse"
 
+export const Info = ConfigAgentV1.Info
+
 const log = Log.create({ service: "config" })
 
 export async function load(dir: string) {

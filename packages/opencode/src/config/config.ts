@@ -24,6 +24,17 @@ import { containsPath, type InstanceContext } from "../project/instance-context"
 import { ConfigV1 } from "@opencode-ai/core/v1/config/config"
 import { ConfigPermissionV1 } from "@opencode-ai/core/v1/config/permission"
 import { ConfigPluginV1 } from "@opencode-ai/core/v1/config/plugin"
+import { ConfigLayoutV1 } from "@opencode-ai/core/v1/config/layout"
+import { ConfigServerV1 } from "@opencode-ai/core/v1/config/server"
+import { ConfigSkillsV1 } from "@opencode-ai/core/v1/config/skills"
+import { ConfigReference } from "@opencode-ai/core/config/reference"
+import { ConfigProvider } from "@opencode-ai/core/config/provider"
+import { ConfigMCP } from "@opencode-ai/core/config/mcp"
+import { ConfigFormatter } from "@opencode-ai/core/config/formatter"
+import { ConfigLSP } from "@opencode-ai/core/config/lsp"
+import { ConfigAttachments } from "@opencode-ai/core/config/attachments"
+import type { DeepMutable } from "@opencode-ai/core/schema"
+import { NonNegativeInt, PositiveInt } from "@opencode-ai/core/schema"
 import { ConfigAgent } from "./agent"
 import { ConfigCommand } from "./command"
 import { ConfigManaged } from "./managed"
@@ -109,7 +120,7 @@ async function resolveLoadedPlugins<T extends { plugin?: ConfigPluginV1.Spec[] }
   return config
 }
 
-export type Layout = ConfigLayout.Layout
+export type Layout = ConfigLayoutV1.Layout
 
 const LogLevelRef = Schema.Literals(["DEBUG", "INFO", "WARN", "ERROR"]).annotate({
   identifier: "LogLevel",
@@ -124,13 +135,13 @@ export const Info = Schema.Struct({
     description: "Default shell to use for terminal and bash tool",
   }),
   logLevel: Schema.optional(LogLevelRef).annotate({ description: "Log level" }),
-  server: Schema.optional(ConfigServer.Server).annotate({
+  server: Schema.optional(ConfigServerV1.Server).annotate({
     description: "Server configuration for opencode serve and web commands",
   }),
   command: Schema.optional(Schema.Record(Schema.String, ConfigCommand.Info)).annotate({
     description: "Command configuration, see https://opencode.ai/docs/commands",
   }),
-  skills: Schema.optional(ConfigSkills.Info).annotate({ description: "Additional skill folder paths" }),
+  skills: Schema.optional(ConfigSkillsV1.Info).annotate({ description: "Additional skill folder paths" }),
   reference: Schema.optional(ConfigReference.Info).annotate({
     description: "Named git or local directory references that can be mentioned as @alias or @alias/path",
   }),
@@ -162,13 +173,13 @@ export const Info = Schema.Struct({
   enabled_providers: Schema.optional(Schema.mutable(Schema.Array(Schema.String))).annotate({
     description: "When set, ONLY these providers will be enabled. All other providers will be ignored",
   }),
-  model: Schema.optional(ConfigModelID).annotate({
+  model: Schema.optional(Schema.String).annotate({
     description: "Model to use in the format of provider/model, eg anthropic/claude-2",
   }),
-  small_model: Schema.optional(ConfigModelID).annotate({
+  small_model: Schema.optional(Schema.String).annotate({
     description: "Small model to use for tasks like title generation in the format of provider/model",
   }),
-  image_model: Schema.optional(ConfigModelID).annotate({
+  image_model: Schema.optional(Schema.String).annotate({
     description: "Default model to use for analyzing images in the format of provider/model",
   }),
   default_agent: Schema.optional(Schema.String).annotate({
@@ -229,10 +240,10 @@ export const Info = Schema.Struct({
   instructions: Schema.optional(Schema.mutable(Schema.Array(Schema.String))).annotate({
     description: "Additional instruction files or patterns to include",
   }),
-  layout: Schema.optional(ConfigLayout.Layout).annotate({ description: "@deprecated Always uses stretch layout." }),
-  permission: Schema.optional(ConfigPermission.Info),
+  layout: Schema.optional(ConfigLayoutV1.Layout).annotate({ description: "@deprecated Always uses stretch layout." }),
+  permission: Schema.optional(ConfigPermissionV1.Info),
   tools: Schema.optional(Schema.Record(Schema.String, Schema.Boolean)),
-  attachment: Schema.optional(ConfigAttachment.Info).annotate({
+  attachment: Schema.optional(ConfigAttachments.Info).annotate({
     description: "Attachment processing configuration, including image size limits and resizing behavior",
   }),
   enterprise: Schema.optional(

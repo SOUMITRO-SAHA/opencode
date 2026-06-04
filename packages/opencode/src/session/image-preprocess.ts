@@ -4,8 +4,10 @@ import type { Config } from "@/config/config"
 import type { Session } from "@/session/session"
 import type { SessionStatus } from "@/session/status"
 import { MessageV2 } from "@/session/message-v2"
+import { TextPart, FilePart, WithParts } from "@opencode-ai/core/v1/session"
+import { ProviderV2 } from "@opencode-ai/core/provider"
+import { ModelV2 } from "@opencode-ai/core/model"
 import { PartID, SessionID, MessageID } from "@/session/schema"
-import { ProviderID, ModelID } from "@/provider/schema"
 import { generateText, type ModelMessage } from "ai"
 import { Effect, Exit, Cause } from "effect"
 import { Agent } from "@/agent/agent"
@@ -17,9 +19,9 @@ export * as ImagePreprocess from "./image-preprocess"
 export const preprocessImages = Effect.fn("ImagePreprocess.preprocessImages")(
   function* (options: {
     sessionID: string
-    message: MessageV2.WithParts
+    message: WithParts
     imageModel?: { providerID: string; modelID: string }
-    textParts: MessageV2.TextPart[]
+    textParts: TextPart[]
     sessions: Session.Interface
     provider: Provider.Interface
     config: Config.Interface
@@ -46,7 +48,7 @@ export const preprocessImages = Effect.fn("ImagePreprocess.preprocessImages")(
     }
 
     const imageParts = message.parts.filter(
-      (part): part is MessageV2.FilePart => part.type === "file" && part.mime.startsWith("image/"),
+      (part): part is FilePart => part.type === "file" && part.mime.startsWith("image/"),
     )
 
     if (imageParts.length === 0) return message
@@ -57,8 +59,8 @@ export const preprocessImages = Effect.fn("ImagePreprocess.preprocessImages")(
       if (explicitImageModel) {
         const exit = yield* Effect.exit(
           provider.getModel(
-            ProviderID.make(explicitImageModel.providerID),
-            ModelID.make(explicitImageModel.modelID),
+            ProviderV2.ID.make(explicitImageModel.providerID),
+            ModelV2.ID.make(explicitImageModel.modelID),
           ),
         )
         if (Exit.isSuccess(exit)) {
@@ -150,7 +152,7 @@ export const preprocessImages = Effect.fn("ImagePreprocess.preprocessImages")(
       yield* sessions.removePart({ sessionID: brandedSessionID, messageID: brandedMessageID, partID: part.id })
     }
 
-    const syntheticPart: MessageV2.TextPart = {
+    const syntheticPart: TextPart = {
       id: PartID.ascending(),
       sessionID: brandedSessionID,
       messageID: brandedMessageID,

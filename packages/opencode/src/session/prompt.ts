@@ -1,6 +1,6 @@
 import { PermissionV1 } from "@opencode-ai/core/v1/permission"
 import path from "path"
-import { SessionV1 } from "@opencode-ai/core/v1/session"
+import { SessionV1, User, Part, TextPart } from "@opencode-ai/core/v1/session"
 import os from "os"
 import { SessionID, MessageID, PartID } from "./schema"
 import { MessageV2 } from "./message-v2"
@@ -694,7 +694,7 @@ export const layer = Layer.effect(
       return yield* provider.defaultModel().pipe(Effect.orDie)
     })
 
-    const createUserMessage: (input: PromptInput) => Effect.Effect<{ info: MessageV2.User; parts: MessageV2.Part[] }, Image.Error> = Effect.fn("SessionPrompt.createUserMessage")(function* (input: PromptInput) {
+    const createUserMessage: (input: PromptInput) => Effect.Effect<{ info: User; parts: Part[] }, Image.Error> = Effect.fn("SessionPrompt.createUserMessage")(function* (input: PromptInput) {
       const agentName = input.agent
       const ag = agentName ? yield* agents.get(agentName) : yield* agents.defaultInfo()
       if (!ag) {
@@ -1233,7 +1233,7 @@ export const layer = Layer.effect(
         yield* sessions.setPermission({ sessionID: session.id, permission: permissions })
       }
 
-      const textParts = message.parts.filter((p): p is MessageV2.TextPart => p.type === "text")
+      const textParts = message.parts.filter((p): p is TextPart => p.type === "text")
       const preprocessed = yield* ImagePreprocess.preprocessImages({
         sessionID: input.sessionID,
         message,

@@ -76,4 +76,6 @@ export function deduplicatePluginOrigins(plugins: Origin[]): Origin[] {
   return list.toReversed()
 }
 
+export const Spec = ConfigPluginV1.Spec
+
 export * as ConfigPlugin from "./plugin"
