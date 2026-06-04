@@ -1,4 +1,5 @@
 import type { NamedError } from "@opencode-ai/core/util/error"
+import { SessionV1 } from "@opencode-ai/core/v1/session"
 import { Cause, Clock, Duration, Effect, Schedule } from "effect"
 import { MessageV2 } from "./message-v2"
 import { iife } from "@/util/iife"
@@ -23,23 +24,23 @@ export type Retryable = {
 }
 
 export const RETRY_INITIAL_DELAY = 2000
-export const RETRY_RPM_DELAY = 60_000 // 60 seconds for requests-per-minute rate limits
+export const RETRY_RPM_DELAY = 60_000
 export const RETRY_BACKOFF_FACTOR = 2
-export const RETRY_MAX_DELAY_NO_HEADERS = 30_000 // 30 seconds
-export const RETRY_MAX_DELAY = 2_147_483_647 // max 32-bit signed integer for setTimeout
+export const RETRY_MAX_DELAY_NO_HEADERS = 30_000
+export const RETRY_MAX_DELAY = 2_147_483_647
 
 function cap(ms: number) {
   return Math.min(ms, RETRY_MAX_DELAY)
 }
 
-function isRpmLimit(error?: MessageV2.APIError) {
+function isRpmLimit(error?: SessionV1.APIError) {
   if (!error) return false
   const msg = error.data.message?.toLowerCase() ?? ""
   const body = error.data.responseBody?.toLowerCase() ?? ""
   return msg.includes("limit_rpm") || body.includes("limit_rpm")
 }
 
-export function delay(attempt: number, error?: MessageV2.APIError) {
+export function delay(attempt: number, error?: SessionV1.APIError) {
   const rpm = isRpmLimit(error)
   const initialDelay = rpm ? RETRY_RPM_DELAY : RETRY_INITIAL_DELAY
   const maxDelay = rpm ? RETRY_RPM_DELAY : RETRY_MAX_DELAY_NO_HEADERS
@@ -69,17 +70,17 @@ export function delay(attempt: number, error?: MessageV2.APIError) {
         }
       }
 
-      return cap(initialDelay * Math.pow(RETRY_BACKOFF_FACTOR, attempt - 1))
+      return cap(RETRY_INITIAL_DELAY * Math.pow(RETRY_BACKOFF_FACTOR, attempt - 1))
     }
   }
 
-  return cap(Math.min(initialDelay * Math.pow(RETRY_BACKOFF_FACTOR, attempt - 1), maxDelay))
+  return cap(Math.min(RETRY_INITIAL_DELAY * Math.pow(RETRY_BACKOFF_FACTOR, attempt - 1), RETRY_MAX_DELAY_NO_HEADERS))
 }
 
 export function retryable(error: Err, provider: string) {
   // context overflow errors should not be retried
-  if (MessageV2.ContextOverflowError.isInstance(error)) return undefined
-  if (MessageV2.APIError.isInstance(error)) {
+  if (SessionV1.ContextOverflowError.isInstance(error)) return undefined
+  if (SessionV1.APIError.isInstance(error)) {
     const status = error.data.statusCode
     // 5xx errors are transient server failures and should always be retried,
     // even when the provider SDK doesn't explicitly mark them as retryable.
@@ -195,7 +196,7 @@ export function policy(opts: {
       const retry = retryable(error, opts.provider)
       if (!retry) return Cause.done(meta.attempt)
       return Effect.gen(function* () {
-        const wait = delay(meta.attempt, MessageV2.APIError.isInstance(error) ? error : undefined)
+        const wait = delay(meta.attempt, SessionV1.APIError.isInstance(error) ? error : undefined)
         const now = yield* Clock.currentTimeMillis
         yield* opts.set({
           attempt: meta.attempt,
