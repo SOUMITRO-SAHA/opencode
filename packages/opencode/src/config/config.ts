@@ -28,8 +28,8 @@ import { ConfigLayoutV1 } from "@opencode-ai/core/v1/config/layout"
 import { ConfigServerV1 } from "@opencode-ai/core/v1/config/server"
 import { ConfigSkillsV1 } from "@opencode-ai/core/v1/config/skills"
 import { ConfigReference } from "@opencode-ai/core/config/reference"
-import { ConfigProvider } from "@opencode-ai/core/config/provider"
-import { ConfigMCP } from "@opencode-ai/core/config/mcp"
+import { ConfigProviderV1 } from "@opencode-ai/core/v1/config/provider"
+import { ConfigMCPV1 } from "@opencode-ai/core/v1/config/mcp"
 import { ConfigFormatter } from "@opencode-ai/core/config/formatter"
 import { ConfigLSP } from "@opencode-ai/core/config/lsp"
 import { ConfigAttachments } from "@opencode-ai/core/config/attachments"
@@ -216,14 +216,14 @@ export const Info = Schema.Struct({
       [Schema.Record(Schema.String, ConfigAgent.Info)],
     ),
   ).annotate({ description: "Agent configuration, see https://opencode.ai/docs/agents" }),
-  provider: Schema.optional(Schema.Record(Schema.String, ConfigProvider.Info)).annotate({
+  provider: Schema.optional(Schema.Record(Schema.String, ConfigProviderV1.Info)).annotate({
     description: "Custom provider configurations and model overrides",
   }),
   mcp: Schema.optional(
     Schema.Record(
       Schema.String,
       Schema.Union([
-        ConfigMCP.Info,
+        ConfigMCPV1.Info,
         // Matches the legacy `{ enabled: false }` form used to disable a server.
         Schema.Struct({ enabled: Schema.Boolean }),
       ]),
