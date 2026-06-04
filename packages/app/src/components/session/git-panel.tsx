@@ -9,7 +9,7 @@ import { createStore } from "solid-js/store"
 import { useLayout } from "@/context/layout"
 import { useLanguage } from "@/context/language"
 import { useSync } from "@/context/sync"
-import { useGlobalSDK } from "@/context/global-sdk"
+import { useServerSDK } from "@/context/server-sdk"
 import { useLocal } from "@/context/local"
 import { useSettings } from "@/context/settings"
 import type { VcsFileDiff } from "@opencode-ai/sdk/v2"
@@ -33,7 +33,7 @@ export function GitPanel() {
   const layout = useLayout()
   const language = useLanguage()
   const sync = useSync()
-  const globalSdk = useGlobalSDK()
+  const globalSdk = useServerSDK()
   const local = useLocal()
   const settings = useSettings()
 
@@ -77,7 +77,7 @@ export function GitPanel() {
     const messageID = store.generationMessageID
     if (!messageID) return
 
-    const unsubscribe = globalSdk.event.listen((e) => {
+    const unsubscribe = globalSdk.event.listen((e: any) => {
       const event = e.details
       if (event?.type !== "message.part.updated") return
 
