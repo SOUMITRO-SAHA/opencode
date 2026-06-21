@@ -1,5 +1,5 @@
 import { Show } from "solid-js"
-import { useTheme, tint } from "@tui/context/theme"
+import { useTheme, tint } from "../context/theme"
 import { useTerminalDimensions } from "@opentui/solid"
 import { TextAttributes } from "@opentui/core"
 

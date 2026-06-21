@@ -1,4 +1,3 @@
-import * as Log from "@opencode-ai/core/util/log"
 import { Provider } from "@/provider/provider"
 import type { Config } from "@/config/config"
 import type { Session } from "@/session/session"
@@ -11,8 +10,6 @@ import { PartID, SessionID, MessageID } from "@/session/schema"
 import { generateText, type ModelMessage } from "ai"
 import { Effect, Exit, Cause } from "effect"
 import { Agent } from "@/agent/agent"
-
-const log = Log.create({ service: "image-preprocess" })
 
 export * as ImagePreprocess from "./image-preprocess"
 
@@ -32,18 +29,20 @@ export const preprocessImages = Effect.fn("ImagePreprocess.preprocessImages")(
     if (message.info.role !== "user") return message
     const userModel = message.info.model
     if (!userModel) {
-      log.info("no model ref on message, skipping image preprocess")
+      yield* Effect.logInfo("no model ref on message, skipping image preprocess")
       return message
     }
 
     const currentModel = yield* Effect.exit(provider.getModel(userModel.providerID, userModel.modelID))
     if (Exit.isFailure(currentModel)) {
-      log.warn("failed to get current model, skipping image preprocess", { cause: Cause.squash(currentModel.cause) })
+      yield* Effect.logWarning("failed to get current model, skipping image preprocess", {
+        cause: Cause.squash(currentModel.cause),
+      })
       return message
     }
 
     if (currentModel.value.capabilities.input?.image) {
-      log.info("current model supports images, skipping preprocess")
+      yield* Effect.logInfo("current model supports images, skipping preprocess")
       return message
     }
 
@@ -53,7 +52,7 @@ export const preprocessImages = Effect.fn("ImagePreprocess.preprocessImages")(
 
     if (imageParts.length === 0) return message
 
-    log.info("found images to preprocess", { count: imageParts.length, sessionID })
+    yield* Effect.logInfo("found images to preprocess", { count: imageParts.length, sessionID })
 
     const resolvedImageModel = yield* Effect.gen(function* () {
       if (explicitImageModel) {
@@ -64,7 +63,9 @@ export const preprocessImages = Effect.fn("ImagePreprocess.preprocessImages")(
           ),
         )
         if (Exit.isSuccess(exit)) {
-          log.info("using explicit image model", { model: `${explicitImageModel.providerID}/${explicitImageModel.modelID}` })
+          yield* Effect.logInfo("using explicit image model", {
+            model: `${explicitImageModel.providerID}/${explicitImageModel.modelID}`,
+          })
           return exit.value
         }
       }
@@ -74,7 +75,7 @@ export const preprocessImages = Effect.fn("ImagePreprocess.preprocessImages")(
         const parsed = Provider.parseModel(cfg.image_model)
         const exit = yield* Effect.exit(provider.getModel(parsed.providerID, parsed.modelID))
         if (Exit.isSuccess(exit)) {
-          log.info("using config image model", { model: cfg.image_model })
+          yield* Effect.logInfo("using config image model", { model: cfg.image_model })
           return exit.value
         }
       }
@@ -83,7 +84,9 @@ export const preprocessImages = Effect.fn("ImagePreprocess.preprocessImages")(
       if (fallback) {
         const exit = yield* Effect.exit(provider.getModel(fallback.providerID, fallback.modelID))
         if (Exit.isSuccess(exit)) {
-          log.info("using fallback image model", { model: `${fallback.providerID}/${fallback.modelID}` })
+          yield* Effect.logInfo("using fallback image model", {
+            model: `${fallback.providerID}/${fallback.modelID}`,
+          })
           return exit.value
         }
       }
@@ -92,12 +95,14 @@ export const preprocessImages = Effect.fn("ImagePreprocess.preprocessImages")(
     })
 
     if (!resolvedImageModel) {
-      log.warn("no image model available, skipping preprocess")
+      yield* Effect.logWarning("no image model available, skipping preprocess")
       return message
     }
 
     if (!resolvedImageModel.capabilities.input?.image) {
-      log.warn("resolved image model does not support images", { model: `${resolvedImageModel.providerID}/${resolvedImageModel.id}` })
+      yield* Effect.logWarning("resolved image model does not support images", {
+        model: `${resolvedImageModel.providerID}/${resolvedImageModel.id}`,
+      })
       return message
     }
 
@@ -133,17 +138,17 @@ export const preprocessImages = Effect.fn("ImagePreprocess.preprocessImages")(
       })
       return result.text
     }).pipe(
-      Effect.tapError((err) => Effect.sync(() => log.error("image model call failed", { error: err }))),
+      Effect.tapError((err) => Effect.logError("image model call failed", { error: err })),
       Effect.catch(() => Effect.succeed(undefined as string | undefined)),
       Effect.ensuring(status.set(SessionID.make(sessionID), { type: "busy" })),
     )
 
     if (!description) {
-      log.warn("image model returned empty description, keeping original parts")
+      yield* Effect.logWarning("image model returned empty description, keeping original parts")
       return message
     }
 
-    log.info("image model returned description", { length: description.length })
+    yield* Effect.logInfo("image model returned description", { length: description.length })
 
     const brandedSessionID = SessionID.make(sessionID)
     const brandedMessageID = MessageID.make(message.info.id)

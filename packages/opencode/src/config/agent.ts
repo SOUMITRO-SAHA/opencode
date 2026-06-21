@@ -8,6 +8,9 @@ import { configEntryNameFromPath } from "./entry-name"
 import * as ConfigMarkdown from "./markdown"
 import { ConfigParse } from "./parse"
 
+export const Info = ConfigAgentV1.Info
+export type Info = ConfigAgentV1.Info
+
 
 export async function load(dir: string) {
   const result: Record<string, ConfigAgentV1.Info> = {}
