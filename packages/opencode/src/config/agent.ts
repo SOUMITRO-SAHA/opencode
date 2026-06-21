@@ -2,16 +2,12 @@ export * as ConfigAgent from "./agent"
 
 import path from "path"
 import { Exit, Schema } from "effect"
-import * as Log from "@opencode-ai/core/util/log"
 import { Glob } from "@opencode-ai/core/util/glob"
 import { ConfigAgentV1 } from "@opencode-ai/core/v1/config/agent"
 import { configEntryNameFromPath } from "./entry-name"
 import * as ConfigMarkdown from "./markdown"
 import { ConfigParse } from "./parse"
 
-export const Info = ConfigAgentV1.Info
-
-const log = Log.create({ service: "config" })
 
 export async function load(dir: string) {
   const result: Record<string, ConfigAgentV1.Info> = {}
@@ -21,10 +17,7 @@ export async function load(dir: string) {
     dot: true,
     symlink: true,
   })) {
-    const md = await ConfigMarkdown.parse(item).catch((err) => {
-      log.error("failed to load agent", { agent: item, err })
-      return undefined
-    })
+    const md = await ConfigMarkdown.parse(item).catch(() => undefined)
     if (!md) continue
 
     const name = configEntryNameFromPath(path.relative(dir, item), ["agent/", "agents/"])
@@ -47,10 +40,7 @@ export async function loadMode(dir: string) {
     dot: true,
     symlink: true,
   })) {
-    const md = await ConfigMarkdown.parse(item).catch((err) => {
-      log.error("failed to load mode", { mode: item, err })
-      return undefined
-    })
+    const md = await ConfigMarkdown.parse(item).catch(() => undefined)
     if (!md) continue
 
     const config = {

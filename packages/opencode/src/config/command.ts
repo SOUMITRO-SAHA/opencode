@@ -1,7 +1,6 @@
 export * as ConfigCommand from "./command"
 
 import path from "path"
-import * as Log from "@opencode-ai/core/util/log"
 import { Cause, Exit, Schema } from "effect"
 import { Glob } from "@opencode-ai/core/util/glob"
 import { ConfigCommandV1 } from "@opencode-ai/core/v1/config/command"
@@ -9,9 +8,6 @@ import { configEntryNameFromPath } from "./entry-name"
 import { InvalidError } from "@opencode-ai/core/v1/config/error"
 import * as ConfigMarkdown from "./markdown"
 
-export const Info = ConfigCommandV1.Info
-
-const log = Log.create({ service: "config" })
 
 const decodeInfo = Schema.decodeUnknownExit(ConfigCommandV1.Info)
 
@@ -23,10 +19,7 @@ export async function load(dir: string) {
     dot: true,
     symlink: true,
   })) {
-    const md = await ConfigMarkdown.parse(item).catch((err) => {
-      log.error("failed to load command", { command: item, err })
-      return undefined
-    })
+    const md = await ConfigMarkdown.parse(item).catch(() => undefined)
     if (!md) continue
 
     const name = configEntryNameFromPath(path.relative(dir, item), ["command/", "commands/"])

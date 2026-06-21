@@ -7,13 +7,15 @@ import { NodeFileSystem } from "@effect/platform-node"
 import { FSUtil } from "./fs-util"
 import { Global } from "./global"
 import { EffectFlock } from "./util/effect-flock"
+import { LayerNode } from "./effect/layer-node"
+import { filesystem } from "./effect/layer-node-platform"
 import { makeRuntime } from "./effect/runtime"
 import { NpmConfig } from "./npm-config"
 
 export class InstallFailedError extends Schema.TaggedErrorClass<InstallFailedError>()("NpmInstallFailedError", {
   add: Schema.Array(Schema.String).pipe(Schema.optional),
   dir: Schema.String,
-  cause: Schema.optional(Schema.Defect),
+  cause: Schema.optional(Schema.Defect()),
 }) {}
 
 export interface EntryPoint {
@@ -250,6 +252,7 @@ export const defaultLayer = layer.pipe(
   Layer.provide(Global.layer),
   Layer.provide(NodeFileSystem.layer),
 )
+export const node = LayerNode.make(layer, [FSUtil.node, Global.node, filesystem, EffectFlock.node])
 
 const { runPromise } = makeRuntime(Service, defaultLayer)
 
