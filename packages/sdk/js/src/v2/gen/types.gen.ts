@@ -691,6 +691,10 @@ export type SessionStatus =
   | {
       type: "busy"
     }
+  | {
+      type: "image_processing"
+      model: string
+    }
 
 export type QuestionOption = {
   /**
@@ -726,7 +730,6 @@ export type QuestionTool = {
 }
 
 export type QuestionAnswer = Array<string>
-
 
 export type GlobalEvent = {
   directory: string

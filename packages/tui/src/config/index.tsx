@@ -63,6 +63,9 @@ export const Info = Schema.Struct({
   scroll_acceleration: Schema.optional(ScrollAcceleration),
   diff_style: Schema.optional(DiffStyle),
   mouse: Schema.optional(Schema.Boolean).annotate({ description: "Enable or disable mouse capture (default: true)" }),
+  bell_on_agent_finish: Schema.optional(Schema.Boolean).annotate({
+    description: "Ring a terminal bell when the agent finishes (default: false)",
+  }),
 })
 export type Info = Schema.Schema.Type<typeof Info>
 

@@ -1,18 +1,12 @@
 import { LayerNode } from "@opencode-ai/core/effect/layer-node"
 import { InstanceState } from "@/effect/instance-state"
 import { SessionID } from "./schema"
-import { Effect, Layer, Context, Schema } from "effect"
+import { Effect, Layer, Context } from "effect"
 import { EventV2Bridge } from "@/event-v2-bridge"
 import { SessionStatusEvent } from "@opencode-ai/schema/session-status-event"
 
-export const Info = Schema.Union([
-  SessionStatusEvent.Info,
-  Schema.Struct({
-    type: Schema.Literal("image_processing"),
-    model: Schema.String,
-  }),
-]).annotate({ identifier: "SessionStatus" })
-export type Info = Schema.Schema.Type<typeof Info>
+export type Info = SessionStatusEvent.Info
+export const Info = SessionStatusEvent.Info
 
 export const Event = SessionStatusEvent
 
