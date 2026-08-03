@@ -98,6 +98,26 @@ function googleVertexAnthropicBaseURL(project: string | undefined, location: str
   return `https://aiplatform.${location}.rep.googleapis.com/v1/projects/${project}/locations/${location}/publishers/anthropic/models`
 }
 
+async function googleVertexAuthFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  // Shared ADC fetch for google-vertex providers. Guards against a null
+  // token (impersonation chains) to avoid sending "Bearer null" to the API.
+  const { GoogleAuth } = await import("google-auth-library")
+  const auth = new GoogleAuth({ scopes: ["https://www.googleapis.com/auth/cloud-platform"] })
+  const client = await auth.getClient()
+  const token = await client.getAccessToken()
+  if (!token.token) {
+    throw new Error(
+      "Failed to obtain a Google Cloud access token for Vertex AI. " +
+        "Ensure GOOGLE_APPLICATION_CREDENTIALS points to a valid service account key, " +
+        "or run `gcloud auth application-default login`, " +
+        "or set GOOGLE_VERTEX_API_KEY for Vertex AI Express Mode.",
+    )
+  }
+  const headers = new Headers(init?.headers)
+  headers.set("Authorization", `Bearer ${token.token}`)
+  return fetch(input, { ...init, headers })
+}
+
 type BundledSDK = {
   languageModel(modelId: string): LanguageModelV3
   chat?: (modelId: string) => LanguageModelV3
@@ -529,17 +549,9 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         options: {
           project,
           location,
-          fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
-            const { GoogleAuth } = await import("google-auth-library")
-            const auth = new GoogleAuth({ scopes: ["https://www.googleapis.com/auth/cloud-platform"] })
-            const client = await auth.getClient()
-            const token = await client.getAccessToken()
-
-            const headers = new Headers(init?.headers)
-            headers.set("Authorization", `Bearer ${token.token}`)
-
-            return fetch(input, { ...init, headers })
-          },
+          // Only used for OpenAI-compatible endpoints; resolveSDK strips `fetch`
+          // for the native @ai-sdk/google-vertex SDK which handles ADC internally.
+          fetch: googleVertexAuthFetch,
         },
         async getModel(sdk: any, modelID: string) {
           const id = String(modelID).trim()
@@ -549,8 +561,12 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
     }),
     "google-vertex-anthropic": Effect.fnUntraced(function* () {
       const env = yield* dep.env()
-      const project = env["GOOGLE_CLOUD_PROJECT"] ?? env["GCP_PROJECT"] ?? env["GCLOUD_PROJECT"]
-      const location = env["GOOGLE_CLOUD_LOCATION"] ?? env["VERTEX_LOCATION"] ?? "global"
+      // Include GOOGLE_VERTEX_PROJECT (models.dev canonical name) in addition to
+      // the broader Google Cloud project aliases.
+      const project =
+        env["GOOGLE_VERTEX_PROJECT"] ?? env["GOOGLE_CLOUD_PROJECT"] ?? env["GCP_PROJECT"] ?? env["GCLOUD_PROJECT"]
+      const location =
+        env["GOOGLE_VERTEX_LOCATION"] ?? env["GOOGLE_CLOUD_LOCATION"] ?? env["VERTEX_LOCATION"] ?? "global"
       const autoload = Boolean(project)
       if (!autoload) return { autoload: false }
       const baseURL = googleVertexAnthropicBaseURL(project, location)
@@ -559,17 +575,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         options: {
           project,
           location,
-          fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
-            const { GoogleAuth } = await import("google-auth-library")
-            const auth = new GoogleAuth({ scopes: ["https://www.googleapis.com/auth/cloud-platform"] })
-            const client = await auth.getClient()
-            const token = await client.getAccessToken()
-
-            const headers = new Headers(init?.headers)
-            headers.set("Authorization", `Bearer ${token.token}`)
-
-            return fetch(input, { ...init, headers })
-          },
+          fetch: googleVertexAuthFetch,
           ...(baseURL && { baseURL }),
         },
         async getModel(sdk: any, modelID) {
@@ -1222,10 +1228,7 @@ function cost(c: ModelsDev.Model["cost"]): Model["cost"] {
 }
 
 function supportsImages(model: Model): boolean {
-  return !!(
-    model.capabilities.input?.image ||
-    model.capabilities.output?.image
-  )
+  return !!(model.capabilities.input?.image || model.capabilities.output?.image)
 }
 
 function fromModelsDevModel(provider: ModelsDev.Provider, model: ModelsDev.Model): Model {
@@ -1963,9 +1966,9 @@ const layer = Layer.effect(
       return undefined
     })
 
-     const defaultModel = Effect.fn("Provider.defaultModel")(function* () {
-       const cfg = yield* config.get()
-       if (cfg.model) return parseModel(cfg.model)
+    const defaultModel = Effect.fn("Provider.defaultModel")(function* () {
+      const cfg = yield* config.get()
+      if (cfg.model) return parseModel(cfg.model)
 
       const s = yield* InstanceState.get(state)
       const recent = yield* fs.readJson(path.join(Global.Path.state, "model.json")).pipe(
@@ -1998,20 +2001,20 @@ const layer = Layer.effect(
       }
     })
 
-     const getImageModel = Effect.fn("Provider.getImageModel")(function* () {
-       const s = yield* InstanceState.get(state)
-       for (const [providerID, provider] of Object.entries(s.providers)) {
-         // Look for models that support images
-         for (const [modelID, model] of Object.entries(provider.models)) {
-           if (supportsImages(model)) {
-             return { providerID: ProviderV2.ID.make(providerID), modelID: ModelV2.ID.make(modelID) }
-           }
-         }
-       }
-       return undefined
-     })
+    const getImageModel = Effect.fn("Provider.getImageModel")(function* () {
+      const s = yield* InstanceState.get(state)
+      for (const [providerID, provider] of Object.entries(s.providers)) {
+        // Look for models that support images
+        for (const [modelID, model] of Object.entries(provider.models)) {
+          if (supportsImages(model)) {
+            return { providerID: ProviderV2.ID.make(providerID), modelID: ModelV2.ID.make(modelID) }
+          }
+        }
+      }
+      return undefined
+    })
 
-     return Service.of({ list, getProvider, getModel, getLanguage, closest, getSmallModel, defaultModel, getImageModel })
+    return Service.of({ list, getProvider, getModel, getLanguage, closest, getSmallModel, defaultModel, getImageModel })
   }),
 )
 
