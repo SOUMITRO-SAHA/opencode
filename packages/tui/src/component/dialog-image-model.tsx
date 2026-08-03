@@ -1,9 +1,9 @@
 import { createMemo, createSignal } from "solid-js"
-import { useLocal } from "@tui/context/local"
-import { useSync } from "@tui/context/sync"
+import { useLocal } from "../context/local"
+import { useSync } from "../context/sync"
 import { pipe, flatMap, entries, filter, sortBy, map } from "remeda"
-import { DialogSelect } from "@tui/ui/dialog-select"
-import { useDialog } from "@tui/ui/dialog"
+import { DialogSelect } from "../ui/dialog-select"
+import { useDialog } from "../ui/dialog"
 import * as fuzzysort from "fuzzysort"
 
 function supportsImages(model: { capabilities?: { input?: { image?: boolean } } }): boolean {
