@@ -77,6 +77,8 @@ export function createPromptModelSelection(input: { agent: () => { model?: Model
     },
     visible: models.visible,
     setVisibility: models.setVisibility,
+    setFavorite: models.setFavorite,
+    favorites: models.favorites,
     variant: {
       configured() {
         const item = input.agent()

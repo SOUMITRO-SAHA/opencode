@@ -47,17 +47,17 @@ export function GitPanel() {
     generationMessageID: undefined as string | undefined,
   })
 
-  const branch = createMemo(() => sync.data.vcs?.branch)
+  const branch = createMemo(() => sync().data.vcs?.branch)
 
   const loadDiffs = async () => {
-    if (sync.project?.vcs !== "git") {
+    if (sync().project?.vcs !== "git") {
       setStore("loading", false)
       return
     }
 
     setStore("loading", true)
     try {
-      const result = await globalSdk.client.vcs.diff({ mode: "git" })
+      const result = await globalSdk().client.vcs.diff({ mode: "git" })
       setStore("diffs", result.data ?? [])
     } catch (error) {
       console.debug("[git-panel] failed to load diffs", error)
@@ -77,7 +77,7 @@ export function GitPanel() {
     const messageID = store.generationMessageID
     if (!messageID) return
 
-    const unsubscribe = globalSdk.event.listen((e: any) => {
+    const unsubscribe = globalSdk().event.listen((e: any) => {
       const event = e.details
       if (event?.type !== "message.part.updated") return
 
@@ -139,7 +139,7 @@ ${diffSummary}
 
 Stats: +${additions()} -${deletions()} in ${fileCount()} files`
 
-      const sessions = sync.data.session
+      const sessions = sync().data.session
       const sessionID = sessions.length > 0 ? sessions[0].id : undefined
       if (!sessionID) {
         console.debug("[git-panel] no session available for generation")
@@ -150,7 +150,7 @@ Stats: +${additions()} -${deletions()} in ${fileCount()} files`
       const messageID = `msg-${Date.now()}`
       setStore("generationMessageID", messageID)
 
-      await globalSdk.client.session.promptAsync({
+      await globalSdk().client.session.promptAsync({
         sessionID,
         messageID,
         model,
@@ -174,14 +174,14 @@ Stats: +${additions()} -${deletions()} in ${fileCount()} files`
       const message = store.commitMessage.replace(/"/g, '\\"')
       const command = `git add . && git commit -m "${message}"`
 
-      const sessions = sync.data.session
+      const sessions = sync().data.session
       const sessionID = sessions.length > 0 ? sessions[0].id : undefined
       if (!sessionID) {
         setStore("committing", false)
         return
       }
 
-      await globalSdk.client.session.shell({
+      await globalSdk().client.session.shell({
         sessionID,
         command,
       })

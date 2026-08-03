@@ -1080,6 +1080,8 @@ export async function runMini(input: MiniCommandInput) {
     yolo: false,
     "dangerously-skip-permissions": false,
     dangerouslySkipPermissions: false,
+    "image-model": undefined,
+    imageModel: undefined,
     demo: input.demo ?? false,
   })
 }
